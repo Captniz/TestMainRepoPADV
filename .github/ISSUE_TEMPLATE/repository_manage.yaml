@@ -1,0 +1,30 @@
+name: Repository Management
+description: Want to change something in the repository structure or settings?
+assignees: "Captniz"
+title: "[Repo]: "
+labels: ["repo management"]
+type: repo_manage
+body:
+    - type: input
+      id: groupname
+      attributes:
+          label: Group Name
+          description: Tell us your group name in case we need to get in contact
+          placeholder: ex. UnwrapAndPray
+      validations:
+          required: true
+    - type: textarea
+      id: what-happened
+      attributes:
+          label: What do you need?
+          description: What changes do you wish to apply to the repository configuration 
+          placeholder: Tell us what you see!
+      validations:
+          required: true
+    - type: upload
+      id: screenshots
+      attributes:
+          label: Upload screenshots
+          description: If applicable, add screenshots to help explain your needs.
+      validations:
+          required: false
