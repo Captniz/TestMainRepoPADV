@@ -1,0 +1,60 @@
+name: Validate Git Conventions
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [ opened, synchronize, reopened, edited ]
+
+jobs:
+  validate-branch-name:
+    name: Check Branch Name
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify Branch Prefix
+        run: |
+          BRANCH_NAME="${{ github.head_ref }}"
+          echo "Checking branch name: $BRANCH_NAME"
+          
+          # Regex matches branches starting with feat-, fix-, update-, or other-
+          if [[ "$BRANCH_NAME" =~ ^(feat-|fix-|update-|other-) ]]; then
+            echo "✅ Branch name matches convention."
+          else
+            echo "❌ ERROR: Branch name '$BRANCH_NAME' does not match the required prefix."
+            echo "Branch names must start with one of: feat-, fix-, update-, other-"
+            exit 1
+          fi
+
+  validate-commits:
+    name: Check Commit Messages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all commits in the PR history
+
+      - name: Verify Commit Message Prefixes
+        run: |
+          # Fetch commit messages for the PR range
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          
+          echo "Checking commits between $BASE_SHA and $HEAD_SHA..."
+          
+          FAILED=0
+          
+          while IFS= read -r COMMIT_MSG; do
+            echo "Checking commit: $COMMIT_MSG"
+            # Regex matches commits starting with feat:, fix:, refactor:, or other:
+            if [[ ! "$COMMIT_MSG" =~ ^(feat:|fix:|refactor:|other:) ]]; then
+              echo "  ❌ Failed: Does not start with 'feat:', 'fix:', 'refactor:', or 'other:'"
+              FAILED=1
+            else
+              echo "  ✅ Valid"
+            fi
+          done < <(git log --format="%s" "$BASE_SHA..$HEAD_SHA")
+
+          if [ $FAILED -ne 0 ]; then
+            echo "❌ ERROR: One or more commit messages do not follow the convention."
+            echo "Commit messages must start with one of: feat:, fix:, refactor:, other:"
+            exit 1
+          fi
