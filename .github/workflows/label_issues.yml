@@ -1,0 +1,52 @@
+name: "Auto-Label & Assign"
+
+on:
+    pull_request:
+        types: [opened, synchronize]
+    issues:
+        types: [opened, labeled]
+
+jobs:
+    # 1. Label PRs based on modified folder paths (src/geometry, src/types, etc.)
+    label-pr:
+        if: github.event_name == 'pull_request'
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            pull-requests: write
+        steps:
+            - uses: actions/labeler@v5
+              with:
+                  repo-token: "${{ secrets.GITHUB_TOKEN }}"
+                  configuration-path: .github/labeler-config.yml
+
+    # 2. Assign teams to Issues when labeled (e.g. area:geometry -> Group X)
+    assign-issue-team:
+        if: github.event_name == 'issues'
+        runs-on: ubuntu-latest
+        permissions:
+            issues: write
+        steps:
+            - name: Assign Group X on Geometry Label
+              if: contains(github.event.issue.labels.*.name, 'geometry')
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      github.rest.issues.addAssignees({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        issue_number: context.issue.number,
+                        assignees: ['SharedCode-UniTn-AP-2026/red']
+                      });
+
+            - name: Assign Group Y on Types Label
+              if: contains(github.event.issue.labels.*.name, 'types')
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      github.rest.issues.addAssignees({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        issue_number: context.issue.number,
+                        assignees: ['SharedCode-UniTn-AP-2026/blue']
+                      });
