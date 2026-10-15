@@ -1,0 +1,10 @@
+# Example .github/CODEOWNERS
+
+# Group A owns Program A
+/src/types/    @09tommy05 @Captniz
+
+# Group B owns Program B
+/src/geometry/    @PedroniMichele @Captniz
+
+/.github/      @Captniz
+/*             @Captniz
