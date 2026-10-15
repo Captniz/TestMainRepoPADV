@@ -2,7 +2,7 @@
 
 #![deny(unsafe_code)]
 #![deny(clippy::pedantic)]
-#![allow(missing_docs)]
+#![deny(missing_docs)]
 
 pub use geometry;
 pub use types;
