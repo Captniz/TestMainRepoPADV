@@ -1,0 +1,53 @@
+name: Bug Report
+description: File a bug report.
+title: "[Bug]: "
+labels: ["bug"]
+type: bug
+body:
+    - type: input
+      id: gropname
+      attributes:
+          label: Group Name
+          description: Tell us your group name in case we need to get in contact
+          placeholder: ex. UnwrapAndPray
+      validations:
+          required: true
+    - type: dropdown
+      id: feature
+      attributes:
+          label: Feature
+          description: In which of the components/folders in the repository did you find a bug?
+          options:
+              - Geometry
+              - Types
+          default: 0
+      validations:
+          required: true
+    - type: textarea
+      id: what-happened
+      attributes:
+          label: What happened?
+          description: Tell us, what's wrong and what did you expect to happen.
+          placeholder: Tell us what you see!
+      validations:
+          required: true
+    - type: textarea
+      id: erroroutput
+      attributes:
+          label: Relevant error output
+          description: Please copy and paste any relevant log output or error codes.
+          render: shell
+    - type: textarea
+      id: addinfo
+      attributes:
+          label: Additional Info
+          description: Any info you think might help.
+      validations:
+          required: false
+    - type: upload
+      id: screenshots
+      attributes:
+          label: Upload screenshots
+          description: If applicable, add screenshots to help explain your problem.
+      validations:
+          required: false

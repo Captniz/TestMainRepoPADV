@@ -1,0 +1,47 @@
+name: Request Feature
+description: Ask for a new feature to be added.
+title: "[Feat]: "
+labels: ["feat"]
+type: feat
+body:
+    - type: input
+      id: gropname
+      attributes:
+          label: Group Name
+          description: Tell us your group name in case we need to get in contact
+          placeholder: ex. UnwrapAndPray
+      validations:
+          required: true
+    - type: dropdown
+      id: feature
+      attributes:
+          label: Feature
+          description: In which of the features/folders in the repository would you like to add a feature?
+          options:
+              - Geometry
+              - Types
+          default: 0
+      validations:
+          required: true
+    - type: textarea
+      id: need
+      attributes:
+          label: What do you need?
+          description: Tell us what would you like to add to the component.
+          placeholder: I want to add a function ....
+      validations:
+          required: true
+    - type: textarea
+      id: addinfo
+      attributes:
+          label: Additional Info
+          description: Any info you think might help in the design of the feature.
+      validations:
+          required: false
+    - type: upload
+      id: screenshots
+      attributes:
+          label: Upload screenshots
+          description: If applicable, add screenshots to help explain your needs.
+      validations:
+          required: false
