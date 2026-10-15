@@ -7,7 +7,6 @@ on:
         types: [opened, labeled]
 
 jobs:
-    # 1. Label PRs based on modified folder paths (src/geometry, src/types, etc.)
     label-pr:
         if: github.event_name == 'pull_request'
         runs-on: ubuntu-latest
@@ -60,33 +59,43 @@ jobs:
                         console.log("Could not find 'feature' dropdown field in issue body.");
                       }
 
-    # 2. Assign teams to Issues when labeled (e.g. area:geometry -> Group X)
     assign-issue-team:
-        if: github.event_name == 'issues'
+        needs: [label-issue-from-form]
+        if: always() && github.event_name == 'issues'
         runs-on: ubuntu-latest
         permissions:
             issues: write
         steps:
-            - name: Assign Group X on Geometry Label
-              if: contains(github.event.issue.labels.*.name, 'geometry')
+            - name: Fetch Fresh Labels and Assign Team
               uses: actions/github-script@v7
               with:
                   script: |
-                      github.rest.issues.addAssignees({
+                      // Fetch the issue directly from GitHub API to get the current labels
+                      const { data: issue } = await github.rest.issues.get({
                         owner: context.repo.owner,
                         repo: context.repo.repo,
-                        issue_number: context.issue.number,
-                        assignees: ['SharedCode-UniTn-AP-2026/red']
+                        issue_number: context.issue.number
                       });
 
-            - name: Assign Group Y on Types Label
-              if: contains(github.event.issue.labels.*.name, 'types')
-              uses: actions/github-script@v7
-              with:
-                  script: |
-                      github.rest.issues.addAssignees({
-                        owner: context.repo.owner,
-                        repo: context.repo.repo,
-                        issue_number: context.issue.number,
-                        assignees: ['SharedCode-UniTn-AP-2026/blue']
-                      });
+                      const labelNames = issue.labels.map(l => l.name.toLowerCase());
+                      console.log(`Current labels on issue #${context.issue.number}:`, labelNames);
+
+                      if (labelNames.includes('geometry')) {
+                        await github.rest.issues.addAssignees({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          issue_number: context.issue.number,
+                          assignees: ['SharedCode-UniTn-AP-2026/red']
+                        });
+                        console.log("Assigned SharedCode-UniTn-AP-2026/red team.");
+                      }
+
+                      if (labelNames.includes('types')) {
+                        await github.rest.issues.addAssignees({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          issue_number: context.issue.number,
+                          assignees: ['SharedCode-UniTn-AP-2026/blue']
+                        });
+                        console.log("Assigned SharedCode-UniTn-AP-2026/blue team.");
+                      }
