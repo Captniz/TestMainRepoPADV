@@ -72,11 +72,13 @@ jobs:
                   script: |
                       const org = 'SharedCode-UniTn-AP-2026';
 
-                      const teams = {
-                        'red': [' PedroniMichele'],
-                        'blue': ['09tommy05']
+                      // Team mapping and member assignees
+                      const teamMapping = {
+                        'geometry': { teamSlug: 'red', members: ['PedroniMichele'] },
+                        'types': { teamSlug: 'blue', members: ['09tommy05'] }
                       };
 
+                      // Fetch the latest issue details to get fresh labels
                       const { data: issue } = await github.rest.issues.get({
                         owner: context.repo.owner,
                         repo: context.repo.repo,
@@ -86,33 +88,29 @@ jobs:
                       const labelNames = issue.labels.map(l => l.name.toLowerCase());
                       console.log(`Current labels on issue #${context.issue.number}:`, labelNames);
 
-                      async function assignTeamAndComment(teamSlug) {
-                        const memberUsernames = teams[teamSlug] || [];
+                      for (const [label, teamConfig] of Object.entries(teamMapping)) {
+                        if (labelNames.includes(label)) {
+                          const { teamSlug, members } = teamConfig;
+                          const assignees = members.map(m => m.trim()).filter(Boolean);
 
-                        if (memberUsernames.length > 0) {
-                          await github.rest.issues.addAssignees({
+                          // Assign users to the issue
+                          if (assignees.length > 0) {
+                            await github.rest.issues.addAssignees({
+                              owner: context.repo.owner,
+                              repo: context.repo.repo,
+                              issue_number: context.issue.number,
+                              assignees: assignees
+                            });
+                            console.log(`Assigned users for label '${label}': ${assignees.join(', ')}`);
+                          }
+
+                          // Post team notification comment
+                          await github.rest.issues.createComment({
                             owner: context.repo.owner,
                             repo: context.repo.repo,
                             issue_number: context.issue.number,
-                            assignees: memberUsernames
+                            body: `Hello @${org}/${teamSlug}, this issue has been automatically assigned to your team.`
                           });
-                          console.log(`Assigned users: ${memberUsernames.join(', ')}`);
+                          console.log(`Posted team mention comment for @${org}/${teamSlug}`);
                         }
-
-                        // Post a comment mentioning the full team handle
-                        await github.rest.issues.createComment({
-                          owner: context.repo.owner,
-                          repo: context.repo.repo,
-                          issue_number: context.issue.number,
-                          body: `Hello @${org}/${teamSlug}, this issue has been automatically assigned to your team.`
-                        });
-                        console.log(`Posted team mention comment for @${org}/${teamSlug}`);
-                      }
-
-                      if (labelNames.includes('geometry')) {
-                        await assignTeamAndComment('red');
-                      }
-
-                      if (labelNames.includes('types')) {
-                        await assignTeamAndComment('blue');
                       }
