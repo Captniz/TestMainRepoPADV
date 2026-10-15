@@ -66,11 +66,17 @@ jobs:
         permissions:
             issues: write
         steps:
-            - name: Fetch Fresh Labels and Assign Team
+            - name: Fetch Fresh Labels, Assign Team Members, and Mention Team
               uses: actions/github-script@v7
               with:
                   script: |
-                      // Fetch the issue directly from GitHub API to get the current labels
+                      const org = 'SharedCode-UniTn-AP-2026';
+
+                      const teams = {
+                        'red': [' PedroniMichele'],
+                        'blue': ['09tommy05']
+                      };
+
                       const { data: issue } = await github.rest.issues.get({
                         owner: context.repo.owner,
                         repo: context.repo.repo,
@@ -80,22 +86,33 @@ jobs:
                       const labelNames = issue.labels.map(l => l.name.toLowerCase());
                       console.log(`Current labels on issue #${context.issue.number}:`, labelNames);
 
-                      if (labelNames.includes('geometry')) {
-                        await github.rest.issues.addAssignees({
+                      async function assignTeamAndComment(teamSlug) {
+                        const memberUsernames = teams[teamSlug] || [];
+
+                        if (memberUsernames.length > 0) {
+                          await github.rest.issues.addAssignees({
+                            owner: context.repo.owner,
+                            repo: context.repo.repo,
+                            issue_number: context.issue.number,
+                            assignees: memberUsernames
+                          });
+                          console.log(`Assigned users: ${memberUsernames.join(', ')}`);
+                        }
+
+                        // Post a comment mentioning the full team handle
+                        await github.rest.issues.createComment({
                           owner: context.repo.owner,
                           repo: context.repo.repo,
                           issue_number: context.issue.number,
-                          assignees: ['SharedCode-UniTn-AP-2026/red']
+                          body: `Hello @${org}/${teamSlug}, this issue has been automatically assigned to your team.`
                         });
-                        console.log("Assigned SharedCode-UniTn-AP-2026/red team.");
+                        console.log(`Posted team mention comment for @${org}/${teamSlug}`);
+                      }
+
+                      if (labelNames.includes('geometry')) {
+                        await assignTeamAndComment('red');
                       }
 
                       if (labelNames.includes('types')) {
-                        await github.rest.issues.addAssignees({
-                          owner: context.repo.owner,
-                          repo: context.repo.repo,
-                          issue_number: context.issue.number,
-                          assignees: ['SharedCode-UniTn-AP-2026/blue']
-                        });
-                        console.log("Assigned SharedCode-UniTn-AP-2026/blue team.");
+                        await assignTeamAndComment('blue');
                       }
