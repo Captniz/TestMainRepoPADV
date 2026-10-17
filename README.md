@@ -13,3 +13,5 @@ These are the project's coding principles, and here they are enforced rather tha
 - Every public item carries a doc comment that says what it guarantees.
 - **rustfmt.** Configure your editor.
 - Before committing, `cargo fmt --all` must pass. If it does not pass, and the latest commit is not authored by the current user, make a single commit: `style: format code`.
+
+BRANCH TEST
