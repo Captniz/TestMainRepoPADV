@@ -5,5 +5,5 @@
 #![allow(missing_docs)]
 
 pub fn test() {
-    print!("bella");
+    print!("brutta");
 }
